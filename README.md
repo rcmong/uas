@@ -86,3 +86,8 @@ socket.emit('event', {
 	eventData: <Object | Mixed>
 });
 ```
+
+## Development (TODO)
+1. Install SSL to server via apache
+2. port forward apache to node
+3. enable CORS - only accept connections from 1 source
