@@ -42,16 +42,57 @@ You can connect and send events from browser or server side as long as successfu
   const TMBUAS_HOST = "http://65.109.203.60:3000";
   const socket = io(TMBUAS_HOST);
 
-  const UASHandleFilterAction = (e) => {
-	socket.emit('event', {
-	  type: 'filter_action',
-	  sessionId: '<String>',
-	  eventData: { // free format, send whatever you want
-		element: 'language-de',
-		action: 'increase',
-		value: e.value
-	  }
-	});
+	// Login
+	const username = '';
+	const password = '';
+	
+	try {
+	// Authenticate user and get JWT token
+		const response = await axios.post(`${SERVER_URL}/login`, { username, password });
+		const token = response.data.token;
+		
+		alert('Login successful! Connecting to WebSocket...');
+		connectSocket(token);
+	} catch (error) {
+		alert('Login failed: ' + (error.response ? error.response.data.message : error.message));
+	}
+	
+	// Connect to WebSocket using the JWT token
+	let socket;
+	function connectSocket(token) {	
+		socket = io(SERVER_URL, {
+			auth: { token }, // Pass the JWT token
+		});
+		
+		socket.on('connect', () => {
+			console.log('Connected to the WebSocket server');
+		});
+		
+		socket.on('chat message', (msg) => {
+			const messageDiv = document.createElement('div');
+			messageDiv.textContent = `${msg.user}: ${msg.message}`;
+			document.getElementById('messages').appendChild(messageDiv);
+		});
+	
+		socket.on('connect_error', (err) => {
+			alert('WebSocket connection error: ' + err.message);
+		});
+		
+		socket.on('disconnect', () => {
+			alert('Disconnected from WebSocket server');
+		});
+	}
+
+	const UASHandleFilterAction = (e) => {
+		socket.emit('event', {
+		  type: 'filter_action',
+		  sessionId: '<String>',
+		  eventData: { // free format, send whatever you want
+			element: 'language-de',
+			action: 'increase',
+			value: e.value
+		  }
+		});
   }
   // Assuming JQuery is used in UI
   $("#filterSlider-language-de").on('change', function(e) {
